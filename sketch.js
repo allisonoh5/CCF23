@@ -1,86 +1,75 @@
+let x = 0;
+let y = 0;
+let cloud1X = 0;
+let cloud2X = -200;
 
 function setup() {
-    createCanvas(800, 600);
-    noLoop();
+  createCanvas(720, 400);
+  noStroke();
 }
 
 function draw() {
-    background(0);
+  background(173, 216, 230);
+
+  // Moving the ball 15% towards the mouse per frame on the x axis.
+  // Moving the ball 5% towards the mouse on the y axis.
   
-  //create color pallete
-    let colors = ['#FF4B3E', '#FFB20F', '#ABFF4F', '#29FFC6'];
-    
-    // Drawing a series of circles with various colors, resembling a watermelon slice
-    for (let i = 0; i < width; i += 20) {
-        for (let j = 0; j < height; j += 20) {
-            let index = floor(random(colors.length));
-            fill(colors[index]);
-            ellipse(i, j, 20, 20);
-        }
-    }
-    
-// Drawing a slice of watermelon
-    fill('#f52c2c'); // Red rind
-    arc(400, 200, 500, 500, PI / 6, 5 * PI / 6);
+  if(y>250){
+      x = lerp(x, mouseX, 0.03);
+      y = lerp(y, mouseY, 0.03);
+  }
+  else if(y<=250){
+      x = lerp(x, mouseX, 0.15);
+      y = lerp(y, mouseY, 0.05);
+  }
   
-    fill('#fffcfc'); // White flesh
-    arc(400, 200, 400, 400, PI / 6, 5 * PI / 6);
-    
-    // Drawing seeds on the watermelon
-    fill('#000000'); 
-    // Black seeds
-    for (let i = 0; i < 10; i++) {
-        ellipse(400+ random(-100,100), 300 + random(0, 40), 10, 15);
-    }
+  //ocean
+  fill(0,0,255);
+  noStroke();
+  rect(0, 250, width, 150);
+ 
+  // Drawing clouds
+  drawCloud(cloud1X, 100, 100, 60);
+  drawCloud(cloud2X, 50, 200, 40);
   
-  //bottom half
-  stroke(5)
-  strokeWeight(0);
-  fill('#FDFF75');
-  rect(0,350,800,300);
-   for (let i = 0; i < width; i += 20) {
-        for (let j = 0; j < height; j += 20) {
-            let index = random(-10,10);
-            fill('#000');
-            ellipse(i, j, 20, 20);
-        }
-    }
+  cloud1X += 1;
+  cloud2X += 1;
   
-  //bottom half watermelon rind
-  fill('#802525'); // Red rind
-    arc(400, 350, 400, 130, 0,PI);
-  fill('#54ccc0'); // Blue flesh
-    arc(400, 350, 269, 40, 0,PI);
+  if (cloud1X > width) {
+    cloud1X = -200;
+  }
   
+  if (cloud2X > width) {
+    cloud2X = -200;
+  }
   
-    // Drawing forks
-    drawFork(550, 400);
-    drawFork(50, 530);
-    drawFork(400, 570);
-    drawFork(600, 500);
+  // Draw the turtle's shell
+  fill(34, 139, 34);
+  ellipse(x, y, 120, 80);
+
+  // Draw the turtle's legs
+  fill(34, 139, 34);
+  ellipse(x - 60, y + 30, 40, 20); // Left hind leg
+  ellipse(x + 60, y + 30, 40, 20); // Right hind leg
+
+
+  // Draw the turtle's head
+  fill(34, 139, 34);
+  ellipse(x + 70, y - 20, 40, 30);
+
+  // Draw the turtle's eyes
+  fill(0);
+  ellipse(x + 80, y - 25, 5, 5); 
+
+  // Draw the turtle's smile
+  fill(0);
+  arc(x + 80, y - 15, 20, 10, 0, HALF_PI);
 }
 
-function drawFork(x, y) {
-    // Drawing a fork handle
-    strokeWeight(10);
-    stroke('#000000'); // Grey fork handle with grey outline
-    line(x, y, x + 50, y);
-    
-    // Drawing the prongs of the fork
-    strokeWeight(4);
-    stroke('#000000'); // Black outline for the prongs
-    fill('##00000'); // Black prongs
-    beginShape();
-    vertex(x + 50, y);
-    vertex(x + 70, y - 20);
-    vertex(x + 70, y - 15);
-    vertex(x + 50, y);
-    vertex(x + 70, y);
-    vertex(x + 70, y + 5);
-    vertex(x + 50, y);
-    vertex(x + 70, y + 20);
-    vertex(x + 70, y + 15);
-    vertex(x + 50, y);
-    endShape(CLOSE);
+function drawCloud(x, y, w, h) {
+  fill(255);
+  ellipse(x, y, w, h);
+  ellipse(x - 20, y - 20, w - 20, h - 20);
+  ellipse(x + 20, y - 20, w - 20, h - 20);
+  ellipse(x + 40, y, w - 20, h - 20);
 }
-
