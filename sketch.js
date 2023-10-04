@@ -1,75 +1,47 @@
-let x = 0;
-let y = 0;
-let cloud1X = 0;
-let cloud2X = -200;
+let hourAngle, minuteAngle, secondSize;
 
 function setup() {
-  createCanvas(720, 400);
+  createCanvas(windowWidth, windowHeight);
+  angleMode(DEGREES);
   noStroke();
 }
 
 function draw() {
-  background(173, 216, 230);
+  background(245);
 
-  // Moving the ball 15% towards the mouse per frame on the x axis.
-  // Moving the ball 5% towards the mouse on the y axis.
-  
-  if(y>250){
-      x = lerp(x, mouseX, 0.03);
-      y = lerp(y, mouseY, 0.03);
+  let hours = hour() % 12;  // 0-11
+  let minutes = minute();   // 0-59
+  let seconds = second();   // 0-59
+
+  translate(width / 2, height / 2);
+
+  // Hours as rotating concentric circles
+  for (let i = 1; i <= hours; i++) {
+    let radius = i * 20; // space out the circles
+    let offsetAngle = 360 * (i / 12); // each circle rotates by a different amount
+    let x = radius * cos((hourAngle + offsetAngle) % 360);
+    let y = radius * sin((hourAngle + offsetAngle) % 360);
+    fill(50, 50 + i * 10, 200 - i * 10);  // changing color for each circle
+    ellipse(x, y, 15, 15);
   }
-  else if(y<=250){
-      x = lerp(x, mouseX, 0.15);
-      y = lerp(y, mouseY, 0.05);
+
+  // Minutes as radiating lines
+  stroke(0, 150, 0);
+  strokeWeight(2);
+  let spacing = 360 / 60;  // each line is spaced by 6 degrees
+  for (let i = 0; i < minutes; i++) {
+    let x = 150 * cos(i * spacing);
+    let y = 150 * sin(i * spacing);
+    line(0, 0, x, y);
   }
-  
-  //ocean
-  fill(0,0,255);
-  noStroke();
-  rect(0, 250, width, 150);
- 
-  // Drawing clouds
-  drawCloud(cloud1X, 100, 100, 60);
-  drawCloud(cloud2X, 50, 200, 40);
-  
-  cloud1X += 1;
-  cloud2X += 1;
-  
-  if (cloud1X > width) {
-    cloud1X = -200;
-  }
-  
-  if (cloud2X > width) {
-    cloud2X = -200;
-  }
-  
-  // Draw the turtle's shell
-  fill(34, 139, 34);
-  ellipse(x, y, 120, 80);
 
-  // Draw the turtle's legs
-  fill(34, 139, 34);
-  ellipse(x - 60, y + 30, 40, 20); // Left hind leg
-  ellipse(x + 60, y + 30, 40, 20); // Right hind leg
+  // Seconds as a pulsing circle
+  let pulseSize = map(seconds, 0, 59, 10, 50);
+  fill(255, 0, 0, 150);  // semi-transparent red
+  ellipse(0, 0, pulseSize, pulseSize);
 
-
-  // Draw the turtle's head
-  fill(34, 139, 34);
-  ellipse(x + 70, y - 20, 40, 30);
-
-  // Draw the turtle's eyes
-  fill(0);
-  ellipse(x + 80, y - 25, 5, 5); 
-
-  // Draw the turtle's smile
-  fill(0);
-  arc(x + 80, y - 15, 20, 10, 0, HALF_PI);
+  // Update the angles
+  hourAngle = map(hours, 0, 12, 0, 360) + map(minutes, 0, 60, 0, 30); // the hour circle will move half a degree each minute
+  minuteAngle = map(minutes, 0, 60, 0, 360);
 }
 
-function drawCloud(x, y, w, h) {
-  fill(255);
-  ellipse(x, y, w, h);
-  ellipse(x - 20, y - 20, w - 20, h - 20);
-  ellipse(x + 20, y - 20, w - 20, h - 20);
-  ellipse(x + 40, y, w - 20, h - 20);
-}
