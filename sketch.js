@@ -1,66 +1,100 @@
-let countries;
-let selectedCountry;
-let phrases = ["Hello", "Thank you", "Please", "Yes", "No", "I need help", "How much?", "Where is ...?"];
-let translations = {};
+// Classifier Variable
+let classifier;
 
-//data loading
+// Model URL
+let imageModelURL = 'https://teachablemachine.withgoogle.com/models/_81zbs4jl/';
+
+// Video
+let video;
+let flippedVideo;
+
+// To store the classification
+let label = "";
+
+// Load the model first
 function preload() {
-  countries = loadJSON("https://restcountries.com/v3.1/all");
-  loadJSON("https://restcountries.com/v3.1/all", function(data) {
-  countries = data;
-  console.log(countries);
-  });
+  classifier = ml5.imageClassifier(imageModelURL + 'model.json');
 }
 
-//
 function setup() {
-  createCanvas(800, 600);
-  background(245, 245, 245);
+  // Create a larger canvas than the video size
+  createCanvas(640, 480);
+  // Create the video
+  video = createCapture(VIDEO);
+  video.size(320, 240);
+  video.hide();
 
-  let dropdown = createSelect();
-  dropdown.position(50, 50);
-  dropdown.option("Select a country");
-
-  for (let country of countries) {
-    dropdown.option(country.name.common);
-  }
-
-  dropdown.changed(() => {
-    selectedCountry = dropdown.value();
-    getTranslations(selectedCountry);
-  });
+  flippedVideo = ml5.flipImage(video);
+  // Start classifying
+  classifyVideo();
 }
 
-//fetch the translations from the data
+function draw() {
+  background(0);
+  // Draw the video in the center
+  image(flippedVideo, (width - video.width) / 2, (height - video.height) / 2);
 
-function getTranslations(countryName) {
-  let country = countries.find(c => c.name.common === countryName);
-  let languageCode = Object.keys(country.languages)[0]; // Get the language
-  
-  for (let phrase of phrases) {
-    let url = `https://api.mymemory.translated.net/get?q=${phrase}&langpair=en|${languageCode}`;
-    loadJSON(url, data => {
-      translations[phrase] = data.responseData.translatedText;
-      drawTranslations();
-    });
+  // Provide feedback based on the label
+  if (label === "Face not clearly detected") {
+    fill(255, 0, 0); // Red text
+    textSize(16);
+    text(label, width / 2, height - 50); 
+    // Display above video
+  } else {
+    // Draw a background box for label
+    fill(0, 102, 153, 200); // Semi-transparent background box
+    noStroke();
+    rect((width - video.width) / 2, height - 35, video.width, 24);
+
+    // Draw the label
+    fill(255); // White text
+    textSize(16);
+    textAlign(CENTER);
+    text(label, width / 2, height - 16);
+  }
+
+  // feedback based on label
+  textSize(32);
+  textAlign(CENTER);
+  if (label == "Your mouth is closed") {
+    fill(255);
+    text("😐", width / 2, 100); // Positioned above the video
+  }
+  else if (label == "Your mouth is open") {
+    fill(255);
+    text("😮", width / 2, 100); // Positioned above the video
+  }
+  else if (label == "Where are you?") {
+    fill(255);
+    text("🤔", width / 2, 100); // Positioned above the video
   }
 }
 
-//draw the translations
-function drawTranslations() {
-  background(245, 245, 245);
-  fill(50);
-  textSize(24);
-  text(selectedCountry, 50, 100);
-
-  let y = 150;
-  for (let phrase in translations) {
-    textSize(18);
-    text(phrase + ": ", 50, y);
-    text(translations[phrase], 300, y);
-    y += 30;
-  }
+// Get a prediction for the current video frame
+function classifyVideo() {
+  flippedVideo = ml5.flipImage(video);
+  classifier.classify(flippedVideo, gotResult);
 }
 
-function draw() {} // Empty draw function bc doesn't need to be updated
+// When we get a result
+function gotResult(error, results) {
+  // If there is an error
+  if (error) {
+    console.error(error);
+    return;
+  }
+  // The results are in an array ordered by confidence.
+  label = results[0].label;
+  let confidence = results[0].confidence;
 
+  // Log the label and confidence for debugging
+  console.log(label, confidence);
+
+  // Define a threshold for confidence
+  if (confidence < 0.75) {
+    label = "Face not clearly detected";
+  }
+
+  // Classify again
+  classifyVideo();
+}
