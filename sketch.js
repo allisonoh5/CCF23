@@ -1,58 +1,75 @@
-let orb;  // stores vector
+let x = 0;
+let y = 0;
+let cloud1X = 0;
+let cloud2X = -200;
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  orb = createVector(width / 2, height / 2);  // Initialize orb position as a vector
+  createCanvas(720, 400);
+  noStroke();
 }
 
 function draw() {
-  let currentHour = hour();  // Get current hour
+  background(173, 216, 230);
 
-  // Define emotion based on the hour
-  let emotion;
-  if (currentHour >= 6 && currentHour < 12 || currentHour >= 20 && currentHour < 24) {
-    emotion = "calm";
-  } else if (currentHour >= 12 && currentHour < 16) {
-    emotion = "euphoria";
-  } else {
-    emotion = "melancholy";
+  // Moving the ball 15% towards the mouse per frame on the x axis.
+  // Moving the ball 5% towards the mouse on the y axis.
+  
+  if(y>250){
+      x = lerp(x, mouseX, 0.03);
+      y = lerp(y, mouseY, 0.03);
   }
-
-  // Adjust visuals based on the emotion
-  switch (emotion) {
-    case "calm":
-      background(135, 206, 235);  // Soft blue
-      drawWaves(5, 0.005);        // Slow waves
-      orb.y = lerp(orb.y, height / 2, 0.05); // modified
-      break;
-    case "euphoria":
-      background(255, 255, 51);   // Bright yellow
-      drawWaves(20, 0.03);        // Fast waves
-      orb.y = lerp(orb.y, height * 0.25, 0.05); // modified
-      break;
-    case "melancholy":
-      background(138, 43, 226);   // Deep purple
-      drawWaves(20, 0.01);        // Moderate waves
-      orb.y = lerp(orb.y, height * 0.75, 0.05); // modified
-      break;
+  else if(y<=250){
+      x = lerp(x, mouseX, 0.15);
+      y = lerp(y, mouseY, 0.05);
   }
-
-  // Draw the floating orb
-  fill(255);
+  
+  //ocean
+  fill(0,0,255);
   noStroke();
-  ellipse(orb.x, orb.y, 50, 50); //modified
+  rect(0, 250, width, 150);
+ 
+  // Drawing clouds
+  drawCloud(cloud1X, 100, 100, 60);
+  drawCloud(cloud2X, 50, 200, 40);
+  
+  cloud1X += 1;
+  cloud2X += 1;
+  
+  if (cloud1X > width) {
+    cloud1X = -200;
+  }
+  
+  if (cloud2X > width) {
+    cloud2X = -200;
+  }
+  
+  // Draw the turtle's shell
+  fill(34, 139, 34);
+  ellipse(x, y, 120, 80);
+
+  // Draw the turtle's legs
+  fill(34, 139, 34);
+  ellipse(x - 60, y + 30, 40, 20); // Left hind leg
+  ellipse(x + 60, y + 30, 40, 20); // Right hind leg
+
+
+  // Draw the turtle's head
+  fill(34, 139, 34);
+  ellipse(x + 70, y - 20, 40, 30);
+
+  // Draw the turtle's eyes
+  fill(0);
+  ellipse(x + 80, y - 25, 5, 5); 
+
+  // Draw the turtle's smile
+  fill(0);
+  arc(x + 80, y - 15, 20, 10, 0, HALF_PI);
 }
 
-function drawWaves(numWaves, waveSpeed) {
-  stroke(255);
-  noFill();
-  for (let i = 0; i < numWaves; i++) {
-    let y = map(i, 0, numWaves, 0, height);
-    beginShape();
-    for (let x = 0; x < width; x += 10) {
-      let yOffset = sin((x * waveSpeed) + (frameCount * waveSpeed * 2)) * 30;
-      vertex(x, y + yOffset);
-    }
-    endShape();
-  }
+function drawCloud(x, y, w, h) {
+  fill(255);
+  ellipse(x, y, w, h);
+  ellipse(x - 20, y - 20, w - 20, h - 20);
+  ellipse(x + 20, y - 20, w - 20, h - 20);
+  ellipse(x + 40, y, w - 20, h - 20);
 }
