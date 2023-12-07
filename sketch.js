@@ -1,75 +1,70 @@
-let x = 0;
-let y = 0;
-let cloud1X = 0;
-let cloud2X = -200;
+let song;
+let fft;
+let torusRadius;
+let torusRotation = 0;
+
+function preload() {
+  song = loadSound('Aphex Twin-Xtal.mp3'); 
+}
 
 function setup() {
-  createCanvas(720, 400);
-  noStroke();
+  createCanvas(400, 400, WEBGL);
+  song.play();
+  fft = new p5.FFT();
+  torusRadius = 100; // Initial torus size
 }
 
 function draw() {
-  background(173, 216, 230);
+  background(0);
+  let spectrum = fft.analyze();
 
-  // Moving the ball 15% towards the mouse per frame on the x axis.
-  // Moving the ball 5% towards the mouse on the y axis.
-  
-  if(y>250){
-      x = lerp(x, mouseX, 0.03);
-      y = lerp(y, mouseY, 0.03);
+  // Calculate average value of low freq range
+  let lowFreqSum = 0;
+  let lowFreqRange = 10; // Adjust value to target diff frequency ranges
+  for (let i = 0; i < lowFreqRange; i++) {
+    lowFreqSum += spectrum[i];
   }
-  else if(y<=250){
-      x = lerp(x, mouseX, 0.15);
-      y = lerp(y, mouseY, 0.05);
+  let averageLowFreq = lowFreqSum / lowFreqRange;
+
+  // Map average low frequency value to torus size
+  let newSize = map(averageLowFreq, 0, 255, 50, 200);
+
+  // Update torus size based on audio
+  torusRadius = lerp(torusRadius, newSize, 0.1);
+
+  // Calculate average value of the high-frequency range
+  let highFreqSum = 0;
+  let highFreqRange = 40; // Adjust value to target different frequency ranges
+  for (let i = spectrum.length - highFreqRange; i < spectrum.length; i++) {
+    highFreqSum += spectrum[i];
   }
-  
-  //ocean
-  fill(0,0,255);
-  noStroke();
-  rect(0, 250, width, 150);
- 
-  // Drawing clouds
-  drawCloud(cloud1X, 100, 100, 60);
-  drawCloud(cloud2X, 50, 200, 40);
-  
-  cloud1X += 1;
-  cloud2X += 1;
-  
-  if (cloud1X > width) {
-    cloud1X = -200;
-  }
-  
-  if (cloud2X > width) {
-    cloud2X = -200;
-  }
-  
-  // Draw the turtle's shell
-  fill(34, 139, 34);
-  ellipse(x, y, 120, 80);
+  let averageHighFreq = highFreqSum / highFreqRange;
 
-  // Draw the turtle's legs
-  fill(34, 139, 34);
-  ellipse(x - 60, y + 30, 40, 20); // Left hind leg
-  ellipse(x + 60, y + 30, 40, 20); // Right hind leg
+  // Map average high-frequency value to speed torus rotation
+  let rotationSpeed = map(averageHighFreq, 0, 255, -0.1, 0.1);
 
+  // Update torus rotation based on audio
+  torusRotation += rotationSpeed;
 
-  // Draw the turtle's head
-  fill(34, 139, 34);
-  ellipse(x + 70, y - 20, 40, 30);
+  // Apply colorful texture to the torus
+ texture(createTexture(spectrum));
 
-  // Draw the turtle's eyes
-  fill(0);
-  ellipse(x + 80, y - 25, 5, 5); 
-
-  // Draw the turtle's smile
-  fill(0);
-  arc(x + 80, y - 15, 20, 10, 0, HALF_PI);
+  // Draw the torus
+  rotateY(torusRotation);
+  torus(torusRadius, 30);
 }
 
-function drawCloud(x, y, w, h) {
-  fill(255);
-  ellipse(x, y, w, h);
-  ellipse(x - 20, y - 20, w - 20, h - 20);
-  ellipse(x + 20, y - 20, w - 20, h - 20);
-  ellipse(x + 40, y, w - 20, h - 20);
+function createTexture(spectrum) {
+  let texSize = 128;
+  let tex = createGraphics(texSize, texSize);
+  tex.background(0);
+
+  // Generate colorful texture based on audio spectrum
+  for (let i = 0; i < texSize; i++) {
+    let c = color(map(spectrum[i], 0, 255, 0, 255), 150, 255);
+    tex.stroke(c);
+    tex.line(i, 0, i, texSize);
+  }
+
+  return tex;
 }
