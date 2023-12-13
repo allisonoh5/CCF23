@@ -1,0 +1,12 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+canvas {
+  display: block;
+}
+
+input[type=range] {
+  width: 300px;
+  margin: 10px 0;
+}
